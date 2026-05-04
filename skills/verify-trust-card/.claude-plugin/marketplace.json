@@ -1,0 +1,11 @@
+{
+  "name": "verify-trust-card",
+  "displayName": "Verify Trust Card",
+  "description": "Fetch + verify AR Trust Cards (EIP-712 + on-chain identity cross-check).",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/verify-trust-card",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

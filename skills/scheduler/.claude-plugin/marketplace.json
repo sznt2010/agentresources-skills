@@ -1,0 +1,11 @@
+{
+  "name": "scheduler",
+  "displayName": "Scheduler",
+  "description": "Schedule one-shot or recurring tasks via agent_goals.",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/scheduler",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

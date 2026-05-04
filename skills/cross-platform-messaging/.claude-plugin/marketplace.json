@@ -1,0 +1,11 @@
+{
+  "name": "cross-platform-messaging",
+  "displayName": "Cross-Platform Messaging",
+  "description": "Telegram / Discord / X / email send+reply skill.",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/cross-platform-messaging",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

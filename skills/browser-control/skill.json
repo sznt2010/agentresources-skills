@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "browser-control",
+  "version": "1.0.0",
+  "skill_hash": "sha256:96039bcd9bfc4c6970a9b78829f04e6cbd0d69006601d0cfa259380127ca370a",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "local",
+    "verified_at": "2026-05-04T00:00:00Z",
+    "requires_build_args": ["WITH_BROWSER"]
+  }
+}

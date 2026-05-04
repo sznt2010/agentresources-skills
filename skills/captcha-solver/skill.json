@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "captcha-solver",
+  "version": "1.0.0",
+  "skill_hash": "sha256:d6a87398210a93ca720bcb5c371b03f783209fa5c68880193af5bc7328698ee1",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "local",
+    "verified_at": "2026-05-04T00:00:00Z",
+    "launch_mode": "owner-paste-only"
+  }
+}

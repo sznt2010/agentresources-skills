@@ -1,0 +1,11 @@
+{
+  "name": "content-writer",
+  "displayName": "Content Writer",
+  "description": "Draft / refine / translate skill backed by LiteLLM proxy.",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/content-writer",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

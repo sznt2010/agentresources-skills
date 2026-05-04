@@ -1,0 +1,59 @@
+name: Verify mirror
+
+# Drift gate. Compares each skill's SKILL.md in this repo against the canonical
+# raw route at agentresources.xyz/skills/<slug>/SKILL.md. A drift = failed CI =
+# broken `npx skills add agentresources/skills` and broken MCP-Registry entry.
+#
+# Treat a failure here as P0: re-run the sync from the AR monorepo, push, retry.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily drift detector at 06:00 UTC.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Diff each skill against canonical raw route
+        env:
+          CANONICAL_BASE: https://agentresources.xyz/skills
+        run: |
+          set -euo pipefail
+          fail=0
+          for dir in skills/*/; do
+            slug="$(basename "${dir}")"
+            local_md="${dir}SKILL.md"
+            if [[ ! -f "${local_md}" ]]; then
+              echo "::error file=${local_md}::missing SKILL.md"
+              fail=1
+              continue
+            fi
+            remote_url="${CANONICAL_BASE}/${slug}/SKILL.md"
+            remote_md="$(mktemp)"
+            http_code="$(curl -sS -o "${remote_md}" -w '%{http_code}' "${remote_url}" || echo 000)"
+            if [[ "${http_code}" != "200" ]]; then
+              echo "::error::canonical fetch failed (${http_code}) for ${remote_url}"
+              fail=1
+              continue
+            fi
+            if ! diff -q "${local_md}" "${remote_md}" >/dev/null; then
+              echo "::error file=${local_md}::drift detected vs ${remote_url}"
+              diff -u "${local_md}" "${remote_md}" | head -120 || true
+              fail=1
+            else
+              echo "ok  ${slug}"
+            fi
+          done
+          exit "${fail}"

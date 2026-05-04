@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "scheduler",
+  "version": "1.0.0",
+  "skill_hash": "sha256:d3d3dcdcdb8af2e4532e0fba07f76abd1ddde696cc7ce4739580f51af6e772d7",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "gateway",
+    "verified_at": "2026-05-04T00:00:00Z"
+  }
+}

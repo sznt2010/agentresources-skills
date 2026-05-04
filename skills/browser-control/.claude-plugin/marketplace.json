@@ -1,0 +1,11 @@
+{
+  "name": "browser-control",
+  "displayName": "Browser Control",
+  "description": "Playwright-backed headless browser automation.",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/browser-control",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

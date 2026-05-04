@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "cross-platform-messaging",
+  "version": "1.0.0",
+  "skill_hash": "sha256:2e81253f44a6eb0a874fb7328321b2e38288b39c27b214e7e19cce8d9eae01aa",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "cloud",
+    "verified_at": "2026-05-04T00:00:00Z"
+  }
+}

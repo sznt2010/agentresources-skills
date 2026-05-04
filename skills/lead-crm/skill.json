@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "lead-crm",
+  "version": "1.0.0",
+  "skill_hash": "sha256:457322fa12ab8469f756fae5d75616a6d89b03695f1e6c3c9e1386c5ecf69746",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "gateway",
+    "verified_at": "2026-05-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "reputation-watch",
+  "version": "1.0.0",
+  "skill_hash": "sha256:61529fb4be2dfbbc0097d920905a0f1ce970c07c3a9b5b348a1ff4b32e2fa5af",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "gateway",
+    "verified_at": "2026-05-04T00:00:00Z"
+  }
+}

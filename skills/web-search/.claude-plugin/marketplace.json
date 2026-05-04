@@ -1,0 +1,11 @@
+{
+  "name": "web-search",
+  "displayName": "Web Search",
+  "description": "Web / news / scholar search via Brave, Tavily, SerpAPI.",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/web-search",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

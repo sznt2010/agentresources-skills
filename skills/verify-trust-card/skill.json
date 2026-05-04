@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "verify-trust-card",
+  "version": "1.0.0",
+  "skill_hash": "sha256:ffe16ba99afa7d1a4b6e79549d7a568fef03462ed080fa8cbc4bd21b3ae0bc2d",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "local",
+    "verified_at": "2026-05-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "content-writer",
+  "version": "1.0.0",
+  "skill_hash": "sha256:5deff7d09995d3488e0b7b53117adec5b86f03d9cc9c04bbddf84609df00107f",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "cloud",
+    "verified_at": "2026-05-04T00:00:00Z"
+  }
+}
