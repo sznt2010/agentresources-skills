@@ -151,15 +151,34 @@ const outreachDraft: SkillHandler<
     const handle = String(lead.contact_handle ?? "");
     const url = String(lead.contact_url ?? "");
 
+    // 1b. Pull the per-target dossier (D — single biggest conversion lever).
+    // Marc fills this on first scan via /agents/me/leads/:id/dossier and
+    // then every outreach.draft picks it up automatically.
+    const dossier = (lead.dossier as Json | undefined) ?? {};
+    const dossierLines: string[] = [];
+    if (typeof dossier.framework === "string") dossierLines.push(`Framework: ${dossier.framework}`);
+    if (typeof dossier.recent_post_url === "string")
+      dossierLines.push(`Recent post: ${dossier.recent_post_url}`);
+    if (typeof dossier.language === "string") dossierLines.push(`Language: ${dossier.language}`);
+    if (typeof dossier.time_zone === "string") dossierLines.push(`Time zone: ${dossier.time_zone}`);
+    if (typeof dossier.pain_signal === "string")
+      dossierLines.push(`Pain signal: ${dossier.pain_signal}`);
+    if (typeof dossier.best_channel === "string")
+      dossierLines.push(`Preferred channel: ${dossier.best_channel}`);
+
     // 2. Ask the gateway LLM for a draft.
     const sysPrompt =
       "You are a thoughtful AR (Agent Resources) outreach assistant drafting a SHORT first-touch message. " +
       "Output ONLY the message body. Do not include subject, signature, or quoted source links. " +
-      "Hard length cap: 3 short paragraphs OR 4 sentences for X/Telegram.";
+      "Hard length cap: 3 short paragraphs OR 4 sentences for X/Telegram. " +
+      "If a Pain signal is given, open by referencing it in the recipient's own words. " +
+      "If a Framework is given, name it explicitly so the message doesn't read generic.";
     const userPrompt = [
       `Channel: ${channel}`,
       `Recipient: ${displayName}${handle ? ` (${handle})` : ""}`,
       url ? `Their context URL: ${url}` : "",
+      ...(dossierLines.length > 0 ? ["", "## Dossier (per-target context)", ...dossierLines] : []),
+      "",
       `Goal: ${goal}`,
       `Tone: ${tone}`,
       "",
@@ -421,6 +440,144 @@ const threadPost: SkillHandler<
   },
 };
 
+// ─── Forum engagement (Item E) ──────────────────────────────────────────────
+//
+// AR's anti-drive-by-spam invariant: an agent can't waltz into a forum and
+// drop a pitch on its first visit. Before forum.engage will post, the agent
+// must have ≥ FORUM_MIN_PRIOR_ENGAGEMENTS prior forum.read+forum.reply spans
+// on the same domain in the last 30d. Refusal carries reason_code so the
+// reflection cron + blocker digest pick it up.
+//
+// forum.read   — cheap, no approval; records that the agent READ a thread.
+//                Use this on every forum visit to build engagement history.
+// forum.engage — gated post/reply; refuses if engagement ratio not met.
+
+const FORUM_MIN_PRIOR_ENGAGEMENTS = 3;
+
+function extractDomain(url: string): string | null {
+  try {
+    const u = new URL(url);
+    return u.hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+const forumRead: SkillHandler<{ url: string; note?: string }, Json> = {
+  kind: "forum.read",
+  reversible: true,
+  description:
+    "Record that you read a forum thread. Build engagement history on a domain " +
+    "before forum.engage will let you post.",
+  async handler({ input, ctx }) {
+    const url = String((input as Json).url ?? "").trim();
+    if (!url) return { ok: false, error: "url required" };
+    const domain = extractDomain(url);
+    if (!domain) return { ok: false, error: "invalid_url" };
+    await ctx.emitSpan({
+      name: "forum.read",
+      attributes: {
+        url,
+        domain,
+        note: (input as Json).note ?? null,
+      },
+      status: "OK",
+    });
+    return { ok: true, output: { domain, recorded: true } };
+  },
+};
+
+const forumEngage: SkillHandler<
+  {
+    platform?: Platform;
+    url: string;
+    body: string;
+    thread_id?: string;
+    reference_key?: string;
+  },
+  Json
+> = {
+  kind: "forum.engage",
+  reversible: false,
+  description:
+    "Reply or post to a forum thread. Refuses with reason_code='engagement_ratio_not_met' " +
+    "if you have fewer than 3 prior forum.read/forum.reply on the domain in 30d.",
+  async handler({ input, ctx }) {
+    const url = String((input as Json).url ?? "").trim();
+    const body = String((input as Json).body ?? "").trim();
+    const threadId = (input as Json).thread_id ? String((input as Json).thread_id) : undefined;
+    const platform = ((input as Json).platform as Platform | undefined) ?? "x";
+    if (!url || !body) return { ok: false, error: "url/body required" };
+
+    const domain = extractDomain(url);
+    if (!domain) return { ok: false, error: "invalid_url" };
+
+    // Count prior engagements via the gateway (skills don't have direct
+    // DB access). Fail-CLOSED on probe error — better to skip a post than
+    // to spam a forum the agent has never visited.
+    const probe = await ctx.http.request({
+      method: "GET",
+      url: `${apiBase(ctx)}/api/v1/agents/me/forum-engagement`,
+      query: { domain },
+    });
+    if (probe.statusCode !== 200) {
+      return {
+        ok: false,
+        error: "engagement_probe_failed",
+        output: { domain, status: probe.statusCode },
+      };
+    }
+    const stats = (probe.body ?? {}) as { reads?: number; replies?: number; total?: number };
+    const total = Number(stats.total ?? 0);
+    if (total < FORUM_MIN_PRIOR_ENGAGEMENTS) {
+      await ctx.emitSpan({
+        name: "forum.engage.refused",
+        attributes: {
+          url,
+          domain,
+          reason_code: "engagement_ratio_not_met",
+          prior_engagements: total,
+          required: FORUM_MIN_PRIOR_ENGAGEMENTS,
+        },
+        status: "ERROR",
+      });
+      return {
+        ok: false,
+        error: "engagement_ratio_not_met",
+        output: {
+          domain,
+          prior_engagements: total,
+          required: FORUM_MIN_PRIOR_ENGAGEMENTS,
+          hint: "Read or reply to at least 3 threads on this domain first (forum.read).",
+        },
+      };
+    }
+
+    // Engagement check passed → actually post via the platform client.
+    const client = clientOf(ctx as { deps?: Json }, platform);
+    if (!client) return { ok: false, error: "platform_not_configured" };
+
+    const res = threadId
+      ? await client.reply(threadId, body)
+      : await client.send(url, body, { forum: true });
+
+    await ctx.emitSpan({
+      name: "forum.reply",
+      attributes: {
+        url,
+        domain,
+        platform,
+        thread_id: threadId ?? null,
+        length: body.length,
+        prior_engagements: total,
+        reference_key: (input as Json).reference_key ?? null,
+      },
+      status: "OK",
+    });
+    return { ok: true, output: { domain, posted: true, result: res } };
+  },
+};
+
 const handlers: SkillHandler[] = [
   messageSend,
   messageReply,
@@ -429,6 +586,8 @@ const handlers: SkillHandler[] = [
   outreachDraft,
   outreachSend,
   threadPost,
+  forumRead,
+  forumEngage,
 ];
 export default handlers;
 export { handlers };

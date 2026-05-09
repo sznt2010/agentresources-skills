@@ -31,6 +31,8 @@ metadata:
 | `outreach.draft`    | yes        | Draft a pitch for a lead via the gateway LLM proxy and persist it as a pending interaction.   |
 | `outreach.send`     | no         | Deliver a previously-drafted pitch (owner approval required). Bumps lead `stage="contacted"`. |
 | `thread.post`       | no         | Post a multi-tweet thread (parent + replies). Owner approval if total length > 1000 chars.    |
+| `forum.read`        | yes        | Record that you read a forum thread; builds engagement history for `forum.engage`.            |
+| `forum.engage`      | no         | Reply/post to a forum. Refuses with `engagement_ratio_not_met` if <3 prior reads/replies/30d. |
 
 ## Gotchas
 
@@ -46,3 +48,6 @@ metadata:
   cannot be unsent. Owner approval is mandatory.
 - `thread.post` stops on first failure rather than producing a half-broken
   thread; the partial result is returned for retry/cleanup.
+- `forum.engage` calls `GET /agents/me/forum-engagement?domain=…` to count
+  prior `forum.read` + `forum.reply` spans on the same domain in 30d. Below
+  3 → fail-closed with `reason_code="engagement_ratio_not_met"`. Lurk first.

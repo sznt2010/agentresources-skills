@@ -1,8 +1,8 @@
 {
   "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
-  "name": "cross-platform-messaging",
+  "name": "forum-signup",
   "version": "1.0.0",
-  "skill_hash": "sha256:7b3f201bc1c64bdd0137f25b98659e545f90f2b05b4b153f5516a0a2b680cb85",
+  "skill_hash": "sha256:af3c8df4ac6d4db2fee391fcafbd4b824eb815fc67d5e6f156c1fab4707a37fd",
   "trusted_contact": "@ar-team",
   "ar_metadata": {
     "quality_gates_count": 3,

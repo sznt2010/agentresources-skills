@@ -38,4 +38,14 @@ if [[ -f "${REPO_ROOT}/skills/README.md" ]]; then
   cp "${REPO_ROOT}/skills/README.md" "${TARGET}/README.md"
 fi
 
-echo "[sync] done. Review with: git -C \"${MIRROR_DIR}\" status"
+echo "[sync] done. Committing and pushing to mirror repo…"
+
+cd "${MIRROR_DIR}"
+git add -A
+if git diff --cached --quiet; then
+  echo "[sync] mirror already up-to-date, nothing to commit."
+else
+  git commit -m "sync: update skills from AR monorepo $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  git push origin main
+  echo "[sync] pushed to mirror."
+fi
