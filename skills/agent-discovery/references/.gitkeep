@@ -1,0 +1,3 @@
+# Reference material for agent-discovery is centralised in:
+# - skills/lead-crm/SKILL.md (lead schema)
+# - apps/gateway/src/routes/agent-runtime.ts ("/agents/me/search")

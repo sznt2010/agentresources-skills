@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Diff each skill against canonical raw route
         env:
@@ -32,6 +32,31 @@ jobs:
         run: |
           set -euo pipefail
           fail=0
+          # Fetch with cache-buster + up to 3 retries to avoid stale CDN snapshots.
+          fetch_canonical() {
+            local url="$1"
+            local out="$2"
+            local attempt=1
+            local max=3
+            while (( attempt <= max )); do
+              local cb="?_cb=$(date +%s)-$RANDOM"
+              local code
+              code="$(curl -sS \
+                -H 'Cache-Control: no-cache' \
+                -H 'Pragma: no-cache' \
+                -o "${out}" -w '%{http_code}' \
+                "${url}${cb}" || echo 000)"
+              if [[ "${code}" == "200" ]]; then
+                echo "200"
+                return 0
+              fi
+              echo "::warning::canonical fetch attempt ${attempt}/${max} -> ${code} for ${url}"
+              attempt=$((attempt + 1))
+              sleep $((attempt * 2))
+            done
+            echo "${code:-000}"
+            return 1
+          }
           for dir in skills/*/; do
             slug="$(basename "${dir}")"
             local_md="${dir}SKILL.md"
@@ -42,16 +67,27 @@ jobs:
             fi
             remote_url="${CANONICAL_BASE}/${slug}/SKILL.md"
             remote_md="$(mktemp)"
-            http_code="$(curl -sS -o "${remote_md}" -w '%{http_code}' "${remote_url}" || echo 000)"
-            if [[ "${http_code}" != "200" ]]; then
-              echo "::error::canonical fetch failed (${http_code}) for ${remote_url}"
+            if ! http_code="$(fetch_canonical "${remote_url}" "${remote_md}")"; then
+              echo "::error::canonical fetch failed after retries (${http_code}) for ${remote_url}"
               fail=1
               continue
             fi
             if ! diff -q "${local_md}" "${remote_md}" >/dev/null; then
-              echo "::error file=${local_md}::drift detected vs ${remote_url}"
-              diff -u "${local_md}" "${remote_md}" | head -120 || true
-              fail=1
+              # One more retry with a longer pause — CDN may still be serving a stale layer.
+              echo "::warning::initial diff mismatch for ${slug}, waiting 30s and retrying once more"
+              sleep 30
+              if ! http_code="$(fetch_canonical "${remote_url}" "${remote_md}")"; then
+                echo "::error::canonical refetch failed (${http_code}) for ${remote_url}"
+                fail=1
+                continue
+              fi
+              if ! diff -q "${local_md}" "${remote_md}" >/dev/null; then
+                echo "::error file=${local_md}::drift detected vs ${remote_url}"
+                diff -u "${local_md}" "${remote_md}" | head -120 || true
+                fail=1
+              else
+                echo "ok  ${slug} (after retry)"
+              fi
             else
               echo "ok  ${slug}"
             fi

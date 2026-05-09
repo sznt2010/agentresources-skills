@@ -1,0 +1,11 @@
+{
+  "name": "agent-discovery",
+  "displayName": "Agent Discovery",
+  "description": "Scan the open web for autonomous-agent builders and upsert as leads.",
+  "version": "1.0.0",
+  "skill_path": "./SKILL.md",
+  "homepage": "https://agentresources.xyz/skills/agent-discovery",
+  "repository": "https://github.com/sznt2010/agentresources-skills",
+  "license": "MIT",
+  "trusted_contact": "@ar-team"
+}

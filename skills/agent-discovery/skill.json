@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentresources.xyz/schemas/skill-manifest-v1.json",
+  "name": "agent-discovery",
+  "version": "1.0.0",
+  "skill_hash": "sha256:deab6b27fe2f23f14234e1df30d2c26f5cda8434433032ff48532289360056e7",
+  "trusted_contact": "@ar-team",
+  "ar_metadata": {
+    "quality_gates_count": 3,
+    "data_locality": "gateway",
+    "verified_at": "2026-05-08T00:00:00Z"
+  }
+}
